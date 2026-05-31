@@ -12,7 +12,7 @@ spring:
   data:
     mongodb:
       host: localhost
-      port: ${mongo-port}
+      port: 27017
       database: local
 ---
 spring:
@@ -22,7 +22,7 @@ spring:
   data:
     mongodb:
       host: localhost
-      port: ${mongo-port}
+      port: 27017
       database: local
 ---
 spring:
@@ -32,7 +32,7 @@ spring:
   data:
     mongodb:
       host: localhost
-      port: ${mongo-port}
+      port: 27017
       database: local
 ---
 logging:

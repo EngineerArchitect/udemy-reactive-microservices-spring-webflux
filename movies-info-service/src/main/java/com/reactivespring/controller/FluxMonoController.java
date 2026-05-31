@@ -12,14 +12,6 @@ import java.time.Duration;
 @RestController
 public class FluxMonoController {
 
-    @Value("${spring.application.name}")
-    private String ApplicationName;
-
-    @GetMapping("/appname")
-    public Mono<String> retrieveAppName() {
-        return Mono.just(ApplicationName);
-    }
-
     @GetMapping("/flux")
     public Flux<Integer> flux(){
         return Flux.just(1,2,3)

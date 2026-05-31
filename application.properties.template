@@ -1,0 +1,5 @@
+MONGO_USERNAME=mongo_db_user
+MONGO_PASSWORD=mongo_db_password
+MONGO_DATABASE=mongo_db_database
+MONGO_EXPRESS_USERNAME=express_web_client_user
+MONGO_EXPRESS_PASSWORD=express_web_client_password

@@ -11,9 +11,12 @@ spring:
       on-profile: local
   data:
     mongodb:
+      username: ${MONGO_USERNAME}
+      password: ${MONGO_PASSWORD}
       host: localhost
       port: 27017
-      database: local
+      database: ${MONGO_DATABASE}
+      authentication-database: admin
 ---
 spring:
   config:
@@ -21,9 +24,12 @@ spring:
       on-profile: nonprod
   data:
     mongodb:
+      username: ${MONGO_USERNAME}
+      password: ${MONGO_PASSWORD}
       host: localhost
       port: 27017
-      database: local
+      database: ${MONGO_DATABASE}
+      authentication-database: admin
 ---
 spring:
   config:
@@ -31,9 +37,12 @@ spring:
       on-profile: prod
   data:
     mongodb:
+      username: ${MONGO_USERNAME}
+      password: ${MONGO_PASSWORD}
       host: localhost
       port: 27017
-      database: local
+      database: ${MONGO_DATABASE}
+      authentication-database: admin
 ---
 logging:
   level:

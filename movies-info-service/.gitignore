@@ -19,7 +19,6 @@ bin/
 
 ### IntelliJ IDEA ###
 .idea
-.idea/
 *.iws
 *.iml
 *.ipr
@@ -36,17 +35,3 @@ out/
 
 ### VS Code ###
 .vscode/
-# Spring Boot specific
-
-logs/
-*.log
-
-# Operating System files
-.DS_Store
-Thumbs.db
-
-# Compiled Java files
-*.class
-
-# Configuration Secrets
-application.properties

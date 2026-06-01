@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -23,6 +24,28 @@ public class MoviesInfoController {
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<MovieInfo> addMovieInfo(@RequestBody @Valid MovieInfo movieInfo) {
         return moviesInfoService.addMovieInfo(movieInfo).log();
+    }
+
+    @GetMapping("/movieinfos")
+    public Flux<MovieInfo> getAllMovieInfos(@RequestParam(value = "year", required = false) Integer year) {
+        return moviesInfoService.getAllMovieInfos().log();
+    }
+
+
+    @GetMapping("/movieinfos/{id}")
+    public Mono<MovieInfo> getMovieInfoById(@PathVariable String id) {
+        return moviesInfoService.getMovieInfoById(id).log();
+    }
+
+    @PutMapping("/movieinfos/{id}")
+    public Mono<MovieInfo> updateMovieInfo(@RequestBody MovieInfo updatedMovieInfo, @PathVariable String id) {
+        return moviesInfoService.updateMovieInfo(updatedMovieInfo, id);
+    }
+
+    @DeleteMapping("/movieinfos/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public Mono<Void> deleteMovieInfo(@PathVariable String id) {
+        return moviesInfoService.deleteMovieInfo(id);
     }
 
 }

@@ -21,7 +21,7 @@ import java.util.List;
 @DataMongoTest
 @Testcontainers
 @ActiveProfiles("test")
-class MovieInfoRepositoryIntegrationTest {
+class MovieInfoRepositoryIntegrationIntgTest {
 
     @Container
     static MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:6.0")

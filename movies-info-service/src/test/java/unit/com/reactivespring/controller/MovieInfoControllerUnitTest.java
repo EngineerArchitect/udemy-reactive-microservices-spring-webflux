@@ -119,17 +119,6 @@ public class MovieInfoControllerUnitTest {
                     var expectedErrorMessage = "movieInfo.cast must be present,movieInfo.name must be present,movieInfo.year must be a Positive Value";
                    Assertions.assertEquals(expectedErrorMessage, responseBody);
                 });
-                /*.expectBody()
-                .jsonPath("$.error").isEqualTo("Bad Request");*/
-
-//                .expectBody(String.class)
-//                .consumeWith(result -> {
-//                    var error = result.getResponseBody();
-//                    assert  error!=null;
-//                    String expectedErrorMessage = "movieInfo.cast must be present,movieInfo.name must be present,movieInfo.year must be a Positive Value";
-//                    assertEquals(expectedErrorMessage, error);
-//
-//                });
     }
 
     @Test

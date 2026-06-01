@@ -154,6 +154,21 @@ class MoviesInfoControllerIntgTest {
     }
 
     @Test
+    void updateMovieInfo_notfound() {
+        var id = "abc1";
+        var updatedMovieInfo = new MovieInfo("abc", "Dark Knight Rises 1",
+                2013, List.of("Christian Bale1", "Tom Hardy1"), LocalDate.parse("2012-07-20"));
+
+        webTestClient
+                .put()
+                .uri(MOVIES_INFO_URL + "/{id}", id)
+                .bodyValue(updatedMovieInfo)
+                .exchange()
+                .expectStatus()
+                .isNotFound();
+    }
+
+    @Test
     void deleteMoviesInfoById() {
         var id ="abc";
 
@@ -163,6 +178,17 @@ class MoviesInfoControllerIntgTest {
                 .exchange()
                 .expectStatus()
                 .isNoContent();
+    }
+
+    @Test
+    void getMovieInfoById_notFound() {
+        var id = "abc1";
+        webTestClient
+                .get()
+                .uri(MOVIES_INFO_URL + "/{id}", id)
+                .exchange()
+                .expectStatus()
+                .isNotFound();
     }
 
 }

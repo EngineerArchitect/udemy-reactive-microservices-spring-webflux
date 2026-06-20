@@ -3,9 +3,11 @@ package com.reactivespring.handler;
 import com.reactivespring.domain.Review;
 import com.reactivespring.repository.ReviewReactiveRepository;
 import org.springframework.http.HttpStatus;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Component
@@ -18,7 +20,7 @@ public class ReviewHandler {
     }
 
     public Mono<ServerResponse> addReview(ServerRequest request) {
-        return request.bodyToMono(Review.class)
+          return request.bodyToMono(Review.class)
                 // When you are going to do a reactive operation and return a value use a flatMap
                 // review -> reviewReactiveRepository.save(review)
                 .flatMap(reviewReactiveRepository::save)
@@ -27,11 +29,21 @@ public class ReviewHandler {
                 .flatMap(ServerResponse.status(HttpStatus.CREATED)::bodyValue);
     }
 
-    public Mono<ServerResponse> getReviews(ServerRequest serverRequest) {
-        var reviewsFlux = reviewReactiveRepository.findAll();
+    public Mono<ServerResponse> getReviews(ServerRequest request) {
 
-        // Use the body(P publisher, Class<T> elementClass), using reviewsFlux as publisher
-        return ServerResponse.ok().body(reviewsFlux, Review.class);
+        var movieInfoId = request.queryParam("movieInfoId");
+        if (movieInfoId.isPresent()) {
+            var reviewsFlux = reviewReactiveRepository.findReviewsByMovieInfoId(Long.valueOf(movieInfoId.get()));
+            return buildReviewsResponse(reviewsFlux);
+        } else {
+            var reviewsFlux = reviewReactiveRepository.findAll();
+            return buildReviewsResponse(reviewsFlux);
+        }
+    }
+
+    @NonNull
+    private static Mono<ServerResponse> buildReviewsResponse(Flux<Review> reviewsFlux) {
+        return ServerResponse.ok().body(reviewsFlux, Review.class); // reviewsFlux used as publisher
     }
 
     public Mono<ServerResponse> updateReview(ServerRequest serverRequest) {

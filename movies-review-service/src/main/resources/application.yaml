@@ -1,0 +1,22 @@
+
+spring:
+  profiles:
+    active: local
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  data:
+    mongodb:
+      username: ${MONGO_USERNAME}
+      password: ${MONGO_PASSWORD}
+      host: localhost
+      port: 27017
+      database: ${MONGO_DATABASE}
+      authentication-database: admin
+logging:
+  level:
+    root: info
+server:
+  port: 8082

@@ -29,9 +29,12 @@ public class MoviesInfoController {
 
     @GetMapping("/movieinfos")
     public Flux<MovieInfo> getAllMovieInfos(@RequestParam(value = "year", required = false) Integer year) {
+        log.info("Year is : {}", year);
+        if (year != null) {
+            return moviesInfoService.getAllMovieInfoByYear(year);
+        }
         return moviesInfoService.getAllMovieInfos().log();
     }
-
 
     @GetMapping("/movieinfos/{id}")
     public Mono<ResponseEntity<MovieInfo>> getMovieInfoById(@PathVariable String id) {
@@ -39,14 +42,14 @@ public class MoviesInfoController {
                 .map(ResponseEntity.ok()::body)
                 .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()))
                 .log();
-
     }
 
     @PutMapping("/movieinfos/{id}")
     public Mono<ResponseEntity<MovieInfo>> updateMovieInfo(@RequestBody MovieInfo updatedMovieInfo, @PathVariable String id) {
         return moviesInfoService.updateMovieInfo(updatedMovieInfo, id)
                 .map(ResponseEntity.ok()::body)
-                .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
+                .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()))
+                .log();
     }
 
     @DeleteMapping("/movieinfos/{id}")

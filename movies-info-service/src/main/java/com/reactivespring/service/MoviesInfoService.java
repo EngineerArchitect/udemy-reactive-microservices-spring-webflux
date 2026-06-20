@@ -6,8 +6,6 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.logging.Logger;
-
 @Service
 public class MoviesInfoService {
 
@@ -30,22 +28,28 @@ public class MoviesInfoService {
         return movieInfoRepository.findById(id);
     }
 
-    public Mono<MovieInfo> updateMovieInfo(MovieInfo movieInfo, String id) {
+    public Mono<MovieInfo> updateMovieInfo(MovieInfo updatedMovieInfo, String id) {
 
         // Always use a FlotMap when you are doing operations
-        // on a responses that are is going to return a reactive type
+        // on a responses that are going to return a reactive type
 
         return movieInfoRepository.findById(id)
-                .flatMap(movieInfo1 -> {
-                    movieInfo1.setCast(movieInfo.getCast());
-                    movieInfo1.setName(movieInfo.getName());
-                    movieInfo1.setRelease_date(movieInfo.getRelease_date());
-                    movieInfo1.setYear(movieInfo.getYear());
-                    return movieInfoRepository.save(movieInfo1);
+                .flatMap(movieInfo -> {
+                    movieInfo.setCast(updatedMovieInfo.getCast());
+                    movieInfo.setName(updatedMovieInfo.getName());
+                    movieInfo.setRelease_date(updatedMovieInfo.getRelease_date());
+                    movieInfo.setYear(updatedMovieInfo.getYear());
+
+                    // Returns a Mono<MovieInfo>
+                    return movieInfoRepository.save(movieInfo);
                 });
     }
 
     public Mono<Void> deleteMovieInfo(String id) {
         return movieInfoRepository.deleteById(id);
+    }
+
+    public Flux<MovieInfo> getAllMovieInfoByYear(Integer year) {
+        return movieInfoRepository.findByYear(year);
     }
 }

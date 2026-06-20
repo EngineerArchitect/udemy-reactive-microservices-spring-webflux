@@ -11,10 +11,12 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import com.reactivespring.domain.MovieInfo;
+import com.reactivespring.repository.MovieInfoRepository;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -35,7 +37,7 @@ class MoviesInfoControllerIntgTest {
     }
 
     @Autowired
-    com.reactivespring.repository.MovieInfoRepository movieInfoRepository;
+    MovieInfoRepository movieInfoRepository;
 
     @Autowired
     WebTestClient webTestClient;
@@ -134,22 +136,22 @@ class MoviesInfoControllerIntgTest {
 
     @Test
     void updateMovieInfo() {
-        var id = "abc";
-        var updatedMovieInfo = new MovieInfo("abc", "Dark Knight Rises 1",
+        var movieInfoId = "abc";
+        var movieIno = new MovieInfo("abc", "Dark Knight Rises 1",
                 2013, List.of("Christian Bale1", "Tom Hardy1"), LocalDate.parse("2012-07-20"));
 
         webTestClient
                 .put()
-                .uri(MOVIES_INFO_URL + "/{id}", id)
-                .bodyValue(updatedMovieInfo)
+                .uri(MOVIES_INFO_URL + "/{id}", movieInfoId)
+                .bodyValue(movieIno)
                 .exchange()
                 .expectStatus()
                 .is2xxSuccessful()
                 .expectBody(MovieInfo.class)
                 .consumeWith(movieInfoEntityExchangeResult -> {
-                    var movieInfo = movieInfoEntityExchangeResult.getResponseBody();
-                    assert movieInfo != null;
-                    Assertions.assertEquals("Dark Knight Rises 1", movieInfo.getName());
+                    var updatedMovieInfo = movieInfoEntityExchangeResult.getResponseBody();
+                    assert updatedMovieInfo != null;
+                    Assertions.assertEquals("Dark Knight Rises 1", updatedMovieInfo.getName());
                 });
     }
 
@@ -189,6 +191,23 @@ class MoviesInfoControllerIntgTest {
                 .exchange()
                 .expectStatus()
                 .isNotFound();
+    }
+
+    @Test
+    void getMovieInfoByYear() {
+        var uri = UriComponentsBuilder.fromUriString(MOVIES_INFO_URL)
+                .queryParam("year", 2005)
+                .buildAndExpand()
+                .toUri();
+
+        webTestClient
+                .get()
+                .uri(uri)
+                .exchange()
+                .expectStatus()
+                .is2xxSuccessful()
+                .expectBodyList(MovieInfo.class)
+                .hasSize(1);
     }
 
 }

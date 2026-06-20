@@ -30,6 +30,8 @@ public class MovieInfoControllerUnitTest {
     @MockitoBean
     private MoviesInfoService moviesInfoServiceMock;
 
+    private static final String MOVIES_INFO_URL = "/v1/movieinfos";
+
     @Test
     void getAllMovieInfos() {
 
@@ -98,6 +100,7 @@ public class MovieInfoControllerUnitTest {
 
         // then
     }
+
 
     @Test
     void addNewMovieInfo_validation() {

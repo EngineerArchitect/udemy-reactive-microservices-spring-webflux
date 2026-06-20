@@ -14,6 +14,18 @@ spring:
       port: 27017
       database: ${MONGO_DATABASE}
       authentication-database: admin
+logging:
+  level:
+    root: debug
+
+# Customizes the path where the raw JSON OpenAPI documentation is available (Default is /v3/api-docs)
+#springdoc:
+#  api-docs:
+#    path: /api-docs
+#  swagger-ui:
+#    path: /swagger-ui.html
+
+  # Customizes the path for the Swagger UI dashboard (Default is /swagger-ui/index.html)
 ---
 spring:
   config:

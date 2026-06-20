@@ -31,12 +31,12 @@ Content-Type: application/json
 {
     "movieInfoId":null, 
     "name": "Dark Knight Rises", 
-    "year":2012,\
+    "year":2012,
     "cast":["Christian Bale", "Tom Hardy"],
     "release_date": "2012-07-20"
 }
 
-## Check current moview
+### Check current moview
 
 GET http://localhost:8080/v1/movieinfos
 

@@ -14,6 +14,7 @@ import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import reactor.test.StepVerifier;
+import com.reactivespring.repository.MovieInfoRepository;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -37,7 +38,7 @@ class MovieInfoRepositoryIntegrationIntgTest {
 
     @BeforeEach
     void setUp() {
-        var movieinfos = List.of(
+        var movieInfos = List.of(
                 new MovieInfo(null, "Batman Begins", 2005,
                         List.of("Christian Bale", "Michael Cane"), LocalDate.parse("2005-06-15")),
                 new MovieInfo(null, "The Dark Knight", 2008,
@@ -46,7 +47,7 @@ class MovieInfoRepositoryIntegrationIntgTest {
                         List.of("Christian Bale", "Tom Hardy"), LocalDate.parse("2012-07-20"))
         );
 
-        movieInfoRepository.saveAll(movieinfos)
+        movieInfoRepository.saveAll(movieInfos)
                 .blockLast();
     }
 
@@ -115,7 +116,19 @@ class MovieInfoRepositoryIntegrationIntgTest {
                 .assertNext(movieInfo1 -> {
                     Assertions.assertNotNull(movieInfo1.getMovieInfoId());
                     Assertions.assertEquals(2021, movieInfo1.getYear());
-                });
+                })
+                .verifyComplete();
+
+    }
+
+    @Test
+    void findByYear() {
+
+        var movieInfosFlux = movieInfoRepository.findByYear(2005).log();
+
+        StepVerifier.create(movieInfosFlux)
+                .expectNextCount(1)
+                .verifyComplete();
 
     }
 
@@ -129,23 +142,12 @@ class MovieInfoRepositoryIntegrationIntgTest {
         StepVerifier.create(movieInfos)
                 .expectNextCount(2)
                 .verifyComplete();
-
-    }
-
-    @Test
-    void findMovieInfoByYear() {
-
-        var movieInfosFlux = movieInfoRepository.findByYear(2005).log();
-
-        StepVerifier.create(movieInfosFlux)
-                .expectNextCount(1)
-                .verifyComplete();
     }
 
     @Test
     void findByName() {
 
-        var movieInfosMono = movieInfoRepository.findByName("Batman Begins").log();
+        var movieInfosMono = movieInfoRepository.findByName("The Dark Knight").log();
 
         StepVerifier.create(movieInfosMono)
                 .expectNextCount(1)

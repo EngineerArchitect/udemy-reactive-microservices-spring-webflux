@@ -11,7 +11,7 @@ import reactor.core.publisher.Mono;
 @Component
 public class ReviewHandler {
 
-    private ReviewReactiveRepository reviewReactiveRepository;
+    private final ReviewReactiveRepository reviewReactiveRepository;
 
     public ReviewHandler(ReviewReactiveRepository reviewReactiveRepository) {
         this.reviewReactiveRepository = reviewReactiveRepository;
@@ -25,5 +25,30 @@ public class ReviewHandler {
                 // Required to convert from Mono<Object> to Mono<ServerResponse>
                 // savedReview -> ServerResponse.status(HttpStatus.CREATED).bodyValue(savedReview)
                 .flatMap(ServerResponse.status(HttpStatus.CREATED)::bodyValue);
+    }
+
+    public Mono<ServerResponse> getReviews(ServerRequest serverRequest) {
+        var reviewsFlux = reviewReactiveRepository.findAll();
+
+        // Use the body(P publisher, Class<T> elementClass), using reviewsFlux as publisher
+        return ServerResponse.ok().body(reviewsFlux, Review.class);
+    }
+
+    public Mono<ServerResponse> updateReview(ServerRequest serverRequest) {
+        var reviewId = serverRequest.pathVariable("id");
+
+        var existingReview = reviewReactiveRepository.findById(reviewId);
+        //.switchIfEmpty(Mono.error(new ReviewNotFoundException("Review not Found for the given Review Id")));
+
+        return existingReview
+                .flatMap(review -> serverRequest.bodyToMono(Review.class)
+                        // Update the existing review with the new one from the http request
+                        .map(reqReview -> {
+                            review.setComment(reqReview.getComment());
+                            review.setRating(reqReview.getRating());
+                            return review;
+                        })
+                        .flatMap(reviewReactiveRepository::save)
+                        .flatMap(ServerResponse.ok()::bodyValue));
     }
 }

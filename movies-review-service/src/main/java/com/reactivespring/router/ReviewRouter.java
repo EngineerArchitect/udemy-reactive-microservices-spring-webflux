@@ -7,6 +7,7 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
+import static org.springframework.web.reactive.function.server.RequestPredicates.path;
 
 @Configuration
 public class ReviewRouter {
@@ -16,7 +17,11 @@ public class ReviewRouter {
         // Configure a router with a handler as lambda
         return route()
                 .GET("/v1/helloworld", (request -> ServerResponse.ok().bodyValue("HelloWorld")))
-                .POST("/v1/reviews", (request -> reviewHandler.addReview(request)))
+                .nest(path("v1/reviews"), builder -> {
+                    builder.POST("", reviewHandler::addReview) // request -> reviewHandler.addReview(request)
+                            .GET("", reviewHandler::getReviews)
+                            .PUT("/{id}", reviewHandler::updateReview);
+                })
                 .build();
     }
 }

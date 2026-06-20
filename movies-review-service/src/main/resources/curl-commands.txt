@@ -1,4 +1,4 @@
-POST-REVIEW:
+POST-REVIEW
 ------------
 curl -i \
 -d '{"reviewId":1, "movieInfoId":1, "comment": "Excellent Movie", "rating":8.0}' \

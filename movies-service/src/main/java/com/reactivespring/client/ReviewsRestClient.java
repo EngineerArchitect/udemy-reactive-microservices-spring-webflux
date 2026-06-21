@@ -1,7 +1,6 @@
 package com.reactivespring.client;
 
 import com.reactivespring.domain.Review;
-import com.reactivespring.exception.MoviesInfoClientException;
 import com.reactivespring.exception.ReviewsClientException;
 import com.reactivespring.exception.ReviewsServerException;
 
@@ -37,7 +36,24 @@ public class ReviewsRestClient {
         return webClient.get()
                 .uri(url)
                 .retrieve()
-                .bodyToFlux(Review.class);
+                .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> {
+                    log.info("Status code is : {}", clientResponse.statusCode().value());
+                    if (clientResponse.statusCode().equals(HttpStatus.NOT_FOUND)) {
+                        return Mono.empty();
+                    }
+
+                    return clientResponse.bodyToMono(String.class)
+                            .flatMap(responseMessage -> Mono.error(new ReviewsClientException(
+                                    responseMessage)));
+                })
+                .onStatus(HttpStatusCode::is5xxServerError, (clientResponse -> {
+                    log.info("Status code : {}", clientResponse.statusCode().value());
+                    return clientResponse.bodyToMono(String.class)
+                            .flatMap(responseMessage -> Mono.error(new ReviewsServerException(
+                                    "Server Exception in ReviewsService " + responseMessage)));
+                }))
+                .bodyToFlux(Review.class)
+                .log();
     }
 
 }

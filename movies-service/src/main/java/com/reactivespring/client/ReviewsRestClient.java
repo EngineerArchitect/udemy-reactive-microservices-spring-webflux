@@ -1,9 +1,11 @@
 package com.reactivespring.client;
 
 import com.reactivespring.domain.Review;
+import com.reactivespring.exception.MoviesInfoServerException;
 import com.reactivespring.exception.ReviewsClientException;
 import com.reactivespring.exception.ReviewsServerException;
 
+import com.reactivespring.util.RetryUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -11,8 +13,12 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
+import reactor.core.Exceptions;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.RetrySpec;
+
+import java.time.Duration;
 
 @Component
 @Slf4j
@@ -32,6 +38,12 @@ public class ReviewsRestClient {
                 .queryParam("movieInfoId", movieId)
                 .build()
                 .toUriString();
+
+        var retrySpec = RetrySpec.fixedDelay(3, Duration.ofSeconds(1))
+                .filter((ex) -> ex instanceof MoviesInfoServerException)
+                .onRetryExhaustedThrow(
+                        (retryBackoffSpec, retrySignal) -> Exceptions.propagate(retrySignal.failure())
+                );
 
         return webClient.get()
                 .uri(url)
@@ -53,6 +65,7 @@ public class ReviewsRestClient {
                                     "Server Exception in ReviewsService " + responseMessage)));
                 }))
                 .bodyToFlux(Review.class)
+                .retryWhen(RetryUtil.retrySpec())
                 .log();
     }
 

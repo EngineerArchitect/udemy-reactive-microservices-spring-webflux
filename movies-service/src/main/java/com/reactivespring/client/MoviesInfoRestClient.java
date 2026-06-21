@@ -13,9 +13,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.Exceptions;
 import reactor.core.publisher.Mono;
-import reactor.util.retry.Retry;
 import reactor.util.retry.RetrySpec;
-
+import com.reactivespring.util.RetryUtil;
 import java.time.Duration;
 
 @Component
@@ -35,11 +34,11 @@ public class MoviesInfoRestClient {
         var url = moviesInfoUrl.concat("/{id}");
 
         // Create retry logic block to propagate Exception whe  retry happens, so client knows what happenned
-        var retrySpec = RetrySpec.fixedDelay(3, Duration.ofSeconds(1))
-                .filter((ex) -> ex instanceof MoviesInfoServerException)
-                .onRetryExhaustedThrow(
-                        (retryBackoffSpec, retrySignal) -> Exceptions.propagate(retrySignal.failure())
-                );
+//        var retrySpec = RetrySpec.fixedDelay(3, Duration.ofSeconds(1))
+//                .filter((ex) -> ex instanceof MoviesInfoServerException)
+//                .onRetryExhaustedThrow(
+//                        (retryBackoffSpec, retrySignal) -> Exceptions.propagate(retrySignal.failure())
+//                );
 
         return webClient.get()
                 .uri(url, movieId)
@@ -67,7 +66,7 @@ public class MoviesInfoRestClient {
                 .bodyToMono(MovieInfo.class)
 //                .retry(3) // Problem is no delay between retries
 //                .retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(1))) // Problem is exception swallowed by retry
-                .retryWhen(retrySpec)
+                .retryWhen(RetryUtil.retrySpec())
                 .log();
     }
 

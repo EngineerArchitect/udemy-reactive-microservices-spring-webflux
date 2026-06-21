@@ -109,4 +109,34 @@ public class MoviesControllerIntgTest {
         // Verify Retry logic
         WireMock.verify(4, getRequestedFor(urlPathEqualTo("/v1/movieinfos/" + movieId)));
     }
+
+    @Test
+    void retrieveMovieById_reviews_5XX() {
+        //given
+        var movieId = "abc";
+        stubFor(get(urlEqualTo("/v1/movieinfos/" + movieId))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("movieinfo.json")));
+
+
+        stubFor(get(urlPathEqualTo("/v1/reviews"))
+                .withQueryParam("movieInfoId", equalTo(movieId))
+                .willReturn(aResponse()
+                        .withStatus(500)
+                        .withBody("Review Service Unavailable")));
+
+        //when
+        webTestClient.get()
+                .uri("/v1/movies/{id}", "abc")
+                .exchange()
+                .expectStatus().is5xxServerError()
+                .expectBody(String.class)
+                .value(message -> {
+                    assertEquals("Server Exception in ReviewsService Review Service Unavailable", message);
+                });
+        //then
+
+        WireMock.verify(4, getRequestedFor(urlPathMatching("/v1/reviews*")));
+    }
 }

@@ -66,7 +66,6 @@ public class MoviesControllerIntgTest {
                         }
                 );
 
-        WireMock.verify(1, getRequestedFor(urlPathEqualTo("/v1/movieinfos/" + movieId)));;
     }
 
     @Test
@@ -106,5 +105,8 @@ public class MoviesControllerIntgTest {
                 .value(message -> {
                     assertEquals("Server Exception in MoviesInfoService MovieInfo Service Unavailable", message);
                 });
+
+        // Verify Retry logic
+        WireMock.verify(4, getRequestedFor(urlPathEqualTo("/v1/movieinfos/" + movieId)));
     }
 }

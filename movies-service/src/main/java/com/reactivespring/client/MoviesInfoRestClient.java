@@ -11,7 +11,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.Exceptions;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
+import reactor.util.retry.RetrySpec;
+
+import java.time.Duration;
 
 @Component
 @Slf4j
@@ -28,6 +33,13 @@ public class MoviesInfoRestClient {
     public Mono<MovieInfo> retrieveMovieInfo(String movieId) {
 
         var url = moviesInfoUrl.concat("/{id}");
+
+        // Create retry logic block to propagate Exception whe  retry happens, so client knows what happenned
+        var retrySpec = RetrySpec.fixedDelay(3, Duration.ofSeconds(1))
+                .filter((ex) -> ex instanceof MoviesInfoServerException)
+                .onRetryExhaustedThrow(
+                        (retryBackoffSpec, retrySignal) -> Exceptions.propagate(retrySignal.failure())
+                );
 
         return webClient.get()
                 .uri(url, movieId)
@@ -53,7 +65,9 @@ public class MoviesInfoRestClient {
                                     "Server Exception in MoviesInfoService " + responseMessage)));
                 }))
                 .bodyToMono(MovieInfo.class)
-                .retry(3)
+//                .retry(3) // Problem is no delay between retries
+//                .retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(1))) // Problem is exception swallowed by retry
+                .retryWhen(retrySpec)
                 .log();
     }
 

@@ -15,7 +15,7 @@ import java.util.Objects;
 
 // What are you testing against
 @WebFluxTest(controllers = FluxMonoController.class)
-// Auto inject a rest client for testing
+// Auto-inject a rest client for testing
 @AutoConfigureWebTestClient
 class FluxMonoControllerTest {
 

@@ -2,9 +2,7 @@ package com.reactivespring.router;
 
 import com.reactivespring.domain.Review;
 import com.reactivespring.repository.ReviewReactiveRepository;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,6 +17,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
@@ -81,7 +80,81 @@ public class ReviewsIntgTest {
                     assert savedReview != null;
                     assertNotNull(savedReview.getReviewId());
                 });
-
     }
+
+    @Test
+    @DisplayName("GET /v1/reviews - Should retrieve all 3 reviews in the database")
+    void retrieveAllReviews_ReturnsAllReviews() {
+        webTestClient
+                .get()
+                .uri(REVIEWS_URL)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBodyList(Review.class)
+                .value(reviews -> assertEquals(3, reviews.size()));
+    }
+
+    @Test
+    @DisplayName("PUT /v1/reviews/{id} - Should update and return the modified review details")
+    void updateReview_ValidReview_ReturnsUpdatedReview() {
+        // given
+        var review = new Review(null, 1L, "Awesome Movie", 9.0);
+        var savedReview = reviewReactiveRepository.save(review).block();
+
+        assertNotNull(savedReview, "Saved review should not be null before updating");
+        var reviewUpdate = new Review(null, 1L, "Bad Movie", 2.0);
+
+        // when & then
+        webTestClient
+                .put()
+                .uri(REVIEWS_URL + "/{id}", savedReview.getReviewId())
+                .bodyValue(reviewUpdate)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(Review.class)
+                .consumeWith(reviewResponse -> {
+                    var updatedReview = reviewResponse.getResponseBody();
+
+                    assertNotNull(updatedReview, "Response body should not be null");
+                    assertNotNull(savedReview.getReviewId());
+                    assertEquals(2.0, updatedReview.getRating());
+                    assertEquals("Bad Movie", updatedReview.getComment());
+                });
+    }
+
+    @Test
+    @DisplayName("DELETE /v1/reviews/{id} - Should delete the review and return 204 No Content")
+    void deleteReview_ValidId_ReturnsNoContent() {
+        // given
+        var review = new Review(null, 1L, "Awesome Movie", 9.0);
+        var savedReview = reviewReactiveRepository.save(review).block();
+
+        assertNotNull(savedReview, "Saved review should not be null before deleting");
+
+        // when & then
+        webTestClient
+                .delete()
+                .uri(REVIEWS_URL + "/{id}", savedReview.getReviewId())
+                .exchange()
+                .expectStatus().isNoContent();
+    }
+
+    @Test
+    @DisplayName("GET /v1/reviews?movieInfoId={id} - Should filter and retrieve reviews by movie ID")
+    void reviewsByMovieInfoId_ValidMovieInfoId_ReturnsMatchingReviews() {
+        // when & then
+        webTestClient
+                .get()
+                .uri(uriBuilder -> uriBuilder
+                        .path(REVIEWS_URL)
+                        .queryParam("movieInfoId", "1")
+                        .build())
+                .exchange()
+                .expectStatus().isOk()
+                .expectBodyList(Review.class)
+                .value(reviewList -> assertEquals(2, reviewList.size()));
+    }
+
+
 
 }

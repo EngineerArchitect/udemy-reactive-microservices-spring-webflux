@@ -2,6 +2,7 @@ package com.reactivespring.handler;
 
 import com.reactivespring.domain.Review;
 import com.reactivespring.exception.ReviewDataException;
+import com.reactivespring.exception.ReviewNotFoundException;
 import com.reactivespring.repository.ReviewReactiveRepository;
 import jakarta.validation.ConstraintViolation;
 import lombok.extern.slf4j.Slf4j;
@@ -72,11 +73,16 @@ public class ReviewHandler {
         return ServerResponse.ok().body(reviewsFlux, Review.class); // reviewsFlux used as publisher
     }
 
+    /**
+     * Note there are 2 approaches for when reviewId is not found
+     * 1. Use switchIfEmpty -> here you rely on an exception to be thrown and caught by global exception handler
+     * 2. switchIfEmpty -> Relaying on alternative logic to handle alternative approach
+     */
     public Mono<ServerResponse> updateReview(ServerRequest serverRequest) {
         var reviewId = serverRequest.pathVariable("id");
 
         var existingReview = reviewReactiveRepository.findById(reviewId);
-        //.switchIfEmpty(Mono.error(new ReviewNotFoundException("Review not Found for the given Review Id")));
+//                .switchIfEmpty(Mono.error(new ReviewNotFoundException("Review not Found for the given Review Id")));
 
         return existingReview
                 .flatMap(review -> serverRequest.bodyToMono(Review.class)
@@ -87,7 +93,9 @@ public class ReviewHandler {
                             return review;
                         })
                         .flatMap(reviewReactiveRepository::save)
-                        .flatMap(ServerResponse.ok()::bodyValue));
+                        .flatMap(ServerResponse.ok()::bodyValue)
+                )
+                .switchIfEmpty(ServerResponse.notFound().build());
     }
 
     public Mono<ServerResponse> deleteReview(ServerRequest serverRequest) {

@@ -7,6 +7,10 @@ plugins {
 group = 'com.reactivespring'
 version = '0.0.1-SNAPSHOT'
 
+ext {
+	springCloudVersion = '2024.0.1'  // Updated version for Spring Boot 3.x
+}
+
 configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
@@ -17,13 +21,23 @@ repositories {
 	mavenCentral()
 }
 
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+	}
+}
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	compileOnly 'org.projectlombok:lombok:1.18.34'
 	annotationProcessor 'org.projectlombok:lombok:1.18.34'
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'io.projectreactor:reactor-test'
+
+	// WireMock - version will be managed by BOM
+	testImplementation 'org.springframework.cloud:spring-cloud-starter-contract-stub-runner'
 }
 
 test {

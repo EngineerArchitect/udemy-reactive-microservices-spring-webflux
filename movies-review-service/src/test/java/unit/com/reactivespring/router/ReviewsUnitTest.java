@@ -1,6 +1,7 @@
 package com.reactivespring.router;
 
 import com.reactivespring.domain.Review;
+import com.reactivespring.exceptionhandler.GlobalErrorHandler;
 import com.reactivespring.handler.ReviewHandler;
 import com.reactivespring.repository.ReviewReactiveRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -27,7 +28,7 @@ import static org.mockito.Mockito.*;
 // Note: There is no controller
 @WebFluxTest
 // Inject beans automatically (handler + router)
-@ContextConfiguration(classes = {ReviewRouter.class, ReviewHandler.class})
+@ContextConfiguration(classes = {ReviewRouter.class, ReviewHandler.class, GlobalErrorHandler.class})
 @AutoConfigureWebTestClient
 @Nested
 @DisplayName("GET /v1/reviews endpoint tests")
@@ -55,6 +56,23 @@ public class ReviewsUnitTest {
             assertNotNull(savedReview.getReviewId());
 
         });
+    }
+
+    @Test
+    @DisplayName("Should perform validation on add review and fail on invalid review")
+    void addReview_Validations() {
+        //given
+        var review = new Review(null, null, "Awesome Movie", -9.0);
+
+        //when
+        webTestClient
+                .post()
+                .uri("/v1/reviews")
+                .bodyValue(review)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody(String.class)
+                .isEqualTo("rating.movieInfoId : must not be null, rating.negative : please pass a non-negative value");
     }
 
     @Test

@@ -23,3 +23,12 @@ curl -i \
 -H "Content-Type: application/json" \
 -X POST http://localhost:8081/v1/reviews
 
+Get Movies
+----------
+
+curl -sS http://host.docker.internal:8082/v1/movies/1 | jq .
+curl -i http://host.docker.internal:8082/v1/movies/2
+
+Apache Workbench testing
+------------------------
+ab -n1000 -c 10 http://host.docker.internal:8082/v1/movies/1

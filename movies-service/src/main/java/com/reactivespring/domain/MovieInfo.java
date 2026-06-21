@@ -20,6 +20,7 @@ public class MovieInfo {
     private String movieInfoId;
     @NotBlank(message = "movieInfo.name must be present")
     private String name;
+
     @NotNull
     @Positive(message = "movieInfo.year must be a Positive Value")
     private Integer year;

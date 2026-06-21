@@ -8,6 +8,7 @@ import jakarta.validation.ConstraintViolation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -16,6 +17,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import jakarta.validation.Validator;
+import reactor.core.publisher.Sinks;
+
 import java.util.stream.Collectors;
 
 @Component
@@ -23,6 +26,8 @@ import java.util.stream.Collectors;
 public class ReviewHandler {
 
     private final ReviewReactiveRepository reviewReactiveRepository;
+
+    Sinks.Many<Review> reviewsSink = Sinks.many().replay().latest();
 
     @Autowired
     private Validator validator;
@@ -37,6 +42,7 @@ public class ReviewHandler {
                 // When you are going to do a reactive operation and return a value use a flatMap
                 // review -> reviewReactiveRepository.save(review)
                 .flatMap(reviewReactiveRepository::save)
+                .doOnNext(reviewsSink::tryEmitNext)
                 // Required to convert from Mono<Object> to Mono<ServerResponse>
                 // savedReview -> ServerResponse.status(HttpStatus.CREATED).bodyValue(savedReview)
                 .flatMap(ServerResponse.status(HttpStatus.CREATED)::bodyValue);
@@ -103,5 +109,12 @@ public class ReviewHandler {
         return reviewReactiveRepository.findById(reviewId)
                 .flatMap(review -> reviewReactiveRepository.deleteById(reviewId))
                 .then(ServerResponse.noContent().build());
+    }
+
+    public Mono<ServerResponse> getReviewsStream(ServerRequest serverRequest) {
+        return ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_NDJSON)
+                .body(reviewsSink.asFlux(), Review.class) // Need to publish reviewsSink.asFlux()
+                .log();
     }
 }

@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.function.Function;
 
-
 public class FluxAndMonoGeneratorService {
 
     public Flux<String> namesFlux() {
@@ -75,11 +74,15 @@ public class FluxAndMonoGeneratorService {
     public Flux<String> namesFlux_flatmap(int stringLength) {
         var namesList = List.of("alex", "ben", "chloe"); // a, l, e , x
         return Flux.fromIterable(namesList)
+                .doOnNext(name -> System.out.println("Original: " + name))
                 //.map(s -> s.toUpperCase())
                 .map(String::toUpperCase)
+                .doOnNext(name -> System.out.println("After uppercase: " + name))
                 .filter(s -> s.length() > stringLength)
+                .doOnNext(name -> System.out.println("After filter: " + name))
                 // ALEX,CHLOE -> A, L, E, X, C, H, L , O, E
-                .flatMap(this::splitString);
+                .flatMap(this::splitString)
+                .doOnNext(letter -> System.out.println("Final result: " + letter));
 
 
     }
@@ -211,8 +214,8 @@ public class FluxAndMonoGeneratorService {
 
         var defFlux = Flux.just("D", "E", "F");
 
-        return abcFlux.concatWith(defFlux)
-                .log(); // Log communication between publisher and subscriber
+        return abcFlux.concatWith(defFlux).log();
+
 
     }
 
